@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "242002301798",
+    "project_id": "locate-892ff"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:242002301798:android:9becf0cb870f1a43",
+        "android_client_info": {
+          "package_name": "com.moumou.locate"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "242002301798-gp9c5f2vtbgs94ciqc4uqj23ptk7e9av.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.moumou.locate",
+            "certificate_hash": "F97993B0F959CB95809907EC34FE7542F259F7DA"
+          }
+        },
+        {
+          "client_id": "242002301798-867r0abqk0n2lglssu8j6s62rbetaetb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA_i8q5KHQi6p6nupLGKIlDnVCxRkmMsxg"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
