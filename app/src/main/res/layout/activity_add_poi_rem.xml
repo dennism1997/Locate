@@ -1,17 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:map="http://schemas.android.com/apk/res-auto"
-              xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:orientation="vertical">
 
-    <fragment
-        android:id="@+id/map"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
+    <ListView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="20"
-        tools:context="com.moumou.locate.AddLocRemActivity"/>
+        android:layout_weight="500"
+        android:id="@+id/poi_type_listview"
+        android:paddingTop="4dp"></ListView>
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textAutoCorrect"
+        android:id="@+id/loc_label"
+        android:hint="@string/place_autocomplete_search_hint"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_weight="1"/>
+
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -33,13 +42,6 @@
             android:id="@+id/loc_ok"/>
     </LinearLayout>
 
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:inputType="textAutoCorrect"
-        android:id="@+id/loc_label"
-        android:hint="label"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"/>
+
 
 </LinearLayout>

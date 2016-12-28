@@ -5,16 +5,19 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.location.Location;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.res.TypedArrayUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
@@ -22,10 +25,11 @@ import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlacePicker;
 import com.moumou.locate.reminder.LocationReminder;
-import com.moumou.locate.reminder.PlaceReminder;
+import com.moumou.locate.reminder.POIReminder;
 import com.moumou.locate.reminder.Reminder;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -33,12 +37,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private String email;
 
     private List<Reminder> reminderList;
+    private ListView listView;
+    private ReminderListAdapter listAdapter;
 
     //FAB's
     private FloatingActionButton fab;
     private FloatingActionButton fab1;
     private FloatingActionButton fab2;
-    private FloatingActionButton fab3;
     private boolean isFabOpen = false;
     private Animation fab_open;
     private Animation fab_close;
@@ -50,7 +55,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //todo get this from memory
         reminderList = new ArrayList<>();
+        listView = (ListView) findViewById(R.id.reminder_listview);
+        //todo make resource
+        listAdapter = new ReminderListAdapter(this, R, reminderList);
+        listView.setAdapter(listAdapter);
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(this);
@@ -58,8 +68,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         fab1.setOnClickListener(this);
         fab2 = (FloatingActionButton) findViewById(R.id.fab2);
         fab2.setOnClickListener(this);
-        fab3 = (FloatingActionButton) findViewById(R.id.fab3);
-        fab3.setOnClickListener(this);
 
         fab_open = AnimationUtils.loadAnimation(this, R.anim.fab_open);
         fab_close = AnimationUtils.loadAnimation(this, R.anim.fab_close);
@@ -114,10 +122,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 animateFAB();
                 break;
             case R.id.fab1:
-                //place reminder
+                //location reminder
                 PlacePicker.IntentBuilder builder = new PlacePicker.IntentBuilder();
                 try {
-                    startActivityForResult(builder.build(this), Constants.RC_NEW_PLACE);
+                    startActivityForResult(builder.build(this), Constants.RC_NEW_LOC);
                 } catch (GooglePlayServicesRepairableException e) {
                     e.printStackTrace();
                 } catch (GooglePlayServicesNotAvailableException e) {
@@ -128,12 +136,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 animateFAB();
                 break;
             case R.id.fab2:
-                //location reminder
-                Intent i = new Intent(this, AddLocRemActivity.class);
-                startActivityForResult(i, Constants.RC_NEW_LOC);
-                animateFAB();
-                break;
-            case R.id.fab3:
+                //poi reminder
+                Intent i = new Intent(this, AddPoiRemActivity.class);
+                startActivityForResult(i, Constants.RC_NEW_PLACE);
                 animateFAB();
                 break;
         }
@@ -145,20 +150,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             fab.startAnimation(rotate_backward);
             fab1.startAnimation(fab_close);
             fab2.startAnimation(fab_close);
-            fab3.startAnimation(fab_close);
             fab1.setClickable(false);
             fab2.setClickable(false);
-            fab3.setClickable(false);
             isFabOpen = false;
         } else {
 
             fab.startAnimation(rotate_forward);
             fab1.startAnimation(fab_open);
             fab2.startAnimation(fab_open);
-            fab3.startAnimation(fab_open);
             fab1.setClickable(true);
             fab2.setClickable(true);
-            fab3.setClickable(true);
             isFabOpen = true;
         }
     }
@@ -168,10 +169,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             fab.startAnimation(rotate_backward);
             fab1.startAnimation(fab_close);
             fab2.startAnimation(fab_close);
-            fab3.startAnimation(fab_close);
             fab1.setClickable(false);
             fab2.setClickable(false);
-            fab3.setClickable(false);
             isFabOpen = false;
         }
     }
@@ -180,31 +179,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        double latitude;
-        double longitude;
-        String label;
+        String label = "label";
         switch (requestCode) {
             case Constants.RC_NEW_LOC: {
                 if (resultCode == Activity.RESULT_OK) {
-                    latitude = data.getDoubleExtra(Constants.NEW_LAT, 400);
-                    longitude = data.getDoubleExtra(Constants.NEW_LONG, 400);
-                    label = data.getStringExtra(Constants.NEW_LABEL);
-                    if (latitude != 400 && longitude != 400) {
-                        Location l = new Location("");
-                        l.setLatitude(latitude);
-                        l.setLongitude(longitude);
-                        reminderList.add(new LocationReminder(Constants.getActivitycounter(), label, l));
-                    }
-                }
-                break;
-            }
-            case Constants.RC_NEW_PLACE: {
-                if (resultCode == Activity.RESULT_OK) {
                     Place place = PlacePicker.getPlace(this, data);
-                    reminderList.add(new PlaceReminder(Constants.getActivitycounter(), "bla", place));
+                    reminderList.add(new LocationReminder(Constants.getActivitycounter(), label, place));
                 }
                 break;
             }
+            case Constants.RC_NEW_PLACE:{
+                if (resultCode == Activity.RESULT_OK) {
+                    int[] types = data.getIntArrayExtra(Constants.NEW_TYPES_ARRAY);
+
+                    List<Integer> list = new ArrayList<>();
+                    for (int type : types) {
+                        list.add(type);
+                    }
+                    reminderList.add(new POIReminder(Constants.getActivitycounter(), label, list));
+                }
+                break;
+            }
+
         }
     }
+
 }

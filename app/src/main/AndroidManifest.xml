@@ -34,7 +34,7 @@
             android:label="@string/title_activity_login">
         </activity>
 
-        <activity android:name=".AddLocRemActivity"
+        <activity android:name=".AddPoiRemActivity"
                   android:label="@string/title_activity_add_loc"/>
 
         <meta-data
