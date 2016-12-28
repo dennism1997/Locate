@@ -26,7 +26,6 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Place;
-import com.google.android.gms.location.places.PlaceDetectionApi;
 import com.google.android.gms.location.places.PlaceLikelihood;
 import com.google.android.gms.location.places.PlaceLikelihoodBuffer;
 import com.google.android.gms.location.places.Places;
@@ -56,7 +55,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private GoogleApiClient mGoogleApiClient;
     private Location mCurrentLocation;
     private LocationRequest mLocationRequest;
-    private boolean mRequestingLocationUpdates;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,6 +116,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onResume();
         if (mGoogleApiClient.isConnected()) {
             startLocationUpdates();
+        } else{
+            mGoogleApiClient.connect();
         }
     }
 
