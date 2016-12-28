@@ -19,4 +19,6 @@
     </string>
     <string name="signed_in">Signed In!</string>
     <string name="gsign_in_tag">GSign In</string>
+    <string name="title_activity_add_loc_rem">Add Location Reminder</string>
+    <string name="title_activity_add_loc">Add Location Reminder</string>
 </resources>
