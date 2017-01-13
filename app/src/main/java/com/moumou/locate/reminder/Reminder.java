@@ -1,10 +1,12 @@
 package com.moumou.locate.reminder;
 
+import java.io.Serializable;
+
 /**
  * Created by MouMou on 28-12-16.
  */
 
-public abstract class Reminder {
+public abstract class Reminder implements Serializable{
 
     private int id;
     private String label;
@@ -14,5 +16,13 @@ public abstract class Reminder {
         this.label = label;
     }
 
+    public int getId() {
+        return id;
+    }
 
+    public String getLabel() {
+        return label;
+    }
+
+    public abstract String toNotificationString();
 }

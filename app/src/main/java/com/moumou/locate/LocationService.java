@@ -25,7 +25,13 @@ import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.PlaceLikelihood;
 import com.google.android.gms.location.places.PlaceLikelihoodBuffer;
 import com.google.android.gms.location.places.Places;
+import com.moumou.locate.reminder.LocationReminder;
+import com.moumou.locate.reminder.POIReminder;
+import com.moumou.locate.reminder.Reminder;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -46,6 +52,8 @@ public class LocationService extends IntentService implements GoogleApiClient.Co
 
     private List<Place> mPlaceList;
 
+    private List<Reminder> reminderList;
+
     public LocationService() {
         super("LocationService");
     }
@@ -58,9 +66,12 @@ public class LocationService extends IntentService implements GoogleApiClient.Co
     @Override
     public void onCreate() {
         super.onCreate();
-
+        //TODO remove when release
+        android.os.Debug.waitForDebugger();
         setUp();
         mGoogleApiClient.connect();
+
+
     }
 
     private void setUp() {
@@ -141,12 +152,14 @@ public class LocationService extends IntentService implements GoogleApiClient.Co
     @Override
     public void onLocationChanged(Location location) {
         mCurrentLocation = location;
-        mPlaceList = getPlaces();
         writeLocation(location);
+        if(getFromStorage() && getPlaces()){
+            checkLocation();
+        }
         Log.d("LOCATION", "[" + new Date() + "]" + location.toString());
     }
 
-    private List<Place> getPlaces() {
+    private synchronized boolean getPlaces() {
         final List<Place> places = new ArrayList<>();
         try {
             PendingResult<PlaceLikelihoodBuffer> result = Places.PlaceDetectionApi.getCurrentPlace(
@@ -169,16 +182,15 @@ public class LocationService extends IntentService implements GoogleApiClient.Co
                     likelyPlaces.release();
                 }
             });
-
-            return places;
+            mPlaceList = places;
+            return true;
         } catch (SecurityException e) {
             e.printStackTrace();
-            return null;
+            return false;
         }
     }
 
     private void writeLocation(final Location location) {
-
         Log.d("IO", "writing location:" + location.toString());
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(
                 getBaseContext());
@@ -187,4 +199,77 @@ public class LocationService extends IntentService implements GoogleApiClient.Co
         Constants.putDouble(editor, Constants.TAG_LONG, location.getLongitude());
         editor.apply();
     }
+
+    private void checkLocation() {
+        for (Reminder r : reminderList) {
+            if (r instanceof POIReminder) {
+                POIReminder pr = (POIReminder) r;
+                for (Place p : mPlaceList) {
+                    for (int i : p.getPlaceTypes()) {
+                        if (pr.getPlaceTypes().contains(i)) {
+                            pr.setMatchedType(i);
+                            makeNotification(pr);
+                            break;
+                        }
+                    }
+                }
+            } else if (r instanceof LocationReminder) {
+                LocationReminder lr = (LocationReminder) r;
+                Location l1 = new Location("");
+                l1.setLatitude(lr.getLatitude());
+                l1.setLongitude(lr.getLongitude());
+
+                Location l2 = new Location("");
+                l2.setLatitude(mCurrentLocation.getLatitude());
+                l2.setLongitude(mCurrentLocation.getLongitude());
+
+                if (l1.distanceTo(l2) < 50) {
+                    makeNotification(lr);
+                }
+            }
+        }
+    }
+
+    private synchronized boolean getFromStorage() {
+        FileInputStream fis = null;
+        ObjectInputStream ois = null;
+        try {
+            fis = openFileInput(Constants.REMINDER_FILE);
+            ois = new ObjectInputStream(fis);
+            Object o = ois.readObject();
+            if (o instanceof List) {
+                List list = (List) o;
+                if (!list.isEmpty() && list.get(0) instanceof Reminder) {
+                    Log.d("IO", "Read from storage:" + list.toString());
+                    reminderList = (List<Reminder>) list;
+                    return true;
+                }
+            }
+            fis.close();
+            ois.close();
+        } catch (ClassNotFoundException | IOException e) {
+            Log.d("IO", "Couldn't read from storage");
+            e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                if (fis != null) {
+                    fis.close();
+                }
+                if (ois != null) {
+                    ois.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
+
+    private void makeNotification(Reminder r) {
+        mNotificationBuilder.setContentTitle(r.getLabel());
+        mNotificationBuilder.setContentText(r.toNotificationString());
+        mNotificationManager.notify(r.getId(), mNotificationBuilder.build());
+    }
+
 }

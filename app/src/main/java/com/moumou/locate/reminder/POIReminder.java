@@ -1,17 +1,15 @@
 package com.moumou.locate.reminder;
 
-import com.google.android.gms.location.places.Place;
+import com.moumou.locate.Constants;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by MouMou on 28-12-16.
- */
-
-public class POIReminder extends Reminder {
+public class POIReminder extends Reminder implements Serializable {
 
     private List<Integer> placeTypes;
+    private int matchedType;
 
     public POIReminder(int id, String Label, List<Integer> placeType) {
         super(id, Label);
@@ -23,11 +21,31 @@ public class POIReminder extends Reminder {
         this.placeTypes = new ArrayList<>();
     }
 
+    @Override
+    public String toNotificationString() {
+        return Constants.POI_TYPES_ARRAY[matchedType];
+    }
+
     public void addType(int type){
         placeTypes.add(type);
     }
 
     public List<Integer> getPlaceTypes() {
         return placeTypes;
+    }
+
+    public String getPlaceTypesString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append(Constants.POI_TYPES_ARRAY[0]);
+        for (int i = 1; i < placeTypes.size(); i++) {
+            sb.append(", ");
+            sb.append(Constants.POI_TYPES_ARRAY[i]);
+        }
+
+        return sb.toString();
+    }
+
+    public void setMatchedType(int i){
+        this.matchedType = i;
     }
 }

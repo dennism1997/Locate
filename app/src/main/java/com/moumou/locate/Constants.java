@@ -13,6 +13,7 @@ import java.util.List;
 
 public class Constants {
 
+    public static final String REMINDER_FILE = "reminders";
     private static int activitycounter = 0;
 
     public static final int RC_LOCATION = 9002;

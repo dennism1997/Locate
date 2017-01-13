@@ -1,6 +1,7 @@
 package com.moumou.locate;
 
 import android.content.Context;
+import android.graphics.Typeface;
 import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -39,7 +40,12 @@ public class PoiTypeAdapter extends ArrayAdapter<String> {
         TextView label = (TextView) convertView.findViewById(R.id.poi_type_name);
         final CheckBox checkBox = (CheckBox) convertView.findViewById(R.id.poi_type_checkbox);
 
+        Typeface roboto = Typeface.createFromAsset(getContext().getAssets(),
+                                                   "font/Roboto-Regular.ttf");
+
+
         label.setText(getItem(position).replaceAll("_", " "));
+        label.setTypeface(roboto);
         checkBox.setChecked(false);
 
         convertView.setOnClickListener(new View.OnClickListener() {
