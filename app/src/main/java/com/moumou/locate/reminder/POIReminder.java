@@ -26,7 +26,7 @@ public class POIReminder extends Reminder implements Serializable {
         return Constants.POI_TYPES_ARRAY[matchedType];
     }
 
-    public void addType(int type){
+    public void addType(int type) {
         placeTypes.add(type);
     }
 
@@ -34,18 +34,20 @@ public class POIReminder extends Reminder implements Serializable {
         return placeTypes;
     }
 
-    public String getPlaceTypesString(){
+    public String getPlaceTypesString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(Constants.POI_TYPES_ARRAY[0]);
-        for (int i = 1; i < placeTypes.size(); i++) {
-            sb.append(", ");
-            sb.append(Constants.POI_TYPES_ARRAY[i]);
+        if (placeTypes.size() > 0) {
+            sb.append(Constants.POI_TYPES_ARRAY[placeTypes.get(0)]);
+            for (int i = 1; i < placeTypes.size(); i++) {
+                sb.append(", ");
+                sb.append(Constants.POI_TYPES_ARRAY[placeTypes.get(i)]);
+            }
         }
 
         return sb.toString();
     }
 
-    public void setMatchedType(int i){
+    public void setMatchedType(int i) {
         this.matchedType = i;
     }
 }

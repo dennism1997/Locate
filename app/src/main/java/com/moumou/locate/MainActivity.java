@@ -2,32 +2,36 @@ package com.moumou.locate;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.res.TypedArrayUtils;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.ArrayAdapter;
+import android.view.inputmethod.EditorInfo;
+import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.SimpleAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Place;
-import com.google.android.gms.location.places.Places;
 import com.google.android.gms.location.places.ui.PlacePicker;
 import com.moumou.locate.reminder.LocationReminder;
 import com.moumou.locate.reminder.POIReminder;
@@ -44,7 +48,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private static List<Reminder> reminderList;
+    private List<Reminder> reminderList;
     private ListView listView;
     private ReminderListAdapter listAdapter;
 
@@ -60,7 +64,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Animation rotate_forward;
     private Animation rotate_backward;
 
-    private GoogleApiClient mGoogleApiClient;
+    private Toolbar toolbar;
+
+    final Context context = this;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,11 +82,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setTitle("Locate");
+        setSupportActionBar(toolbar);
+
         reminderList = new ArrayList<>();
         listView = (ListView) findViewById(R.id.reminder_listview);
         //todo make resource
         listAdapter = new ReminderListAdapter(this, R.layout.reminder_list_item, reminderList);
         listView.setAdapter(listAdapter);
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                changeReminderLabelDialog((Reminder) listView.getItemAtPosition(position));
+            }
+        });
+
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+
+                reminderList.remove(position);
+                listAdapter.notifyDataSetChanged();
+                writeToStorage();
+
+                return true;
+            }
+        });
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(this);
@@ -93,6 +122,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         fab_close = AnimationUtils.loadAnimation(this, R.anim.fab_close);
         rotate_forward = AnimationUtils.loadAnimation(this, R.anim.rotate_forward);
         rotate_backward = AnimationUtils.loadAnimation(this, R.anim.rotate_backward);
+
+        Intent locationService = new Intent(this, LocationService.class);
+        startService(locationService);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.toolbar, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                //todo open settings
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     private synchronized void getFromStorage() {
@@ -107,7 +156,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (!list.isEmpty() && list.get(0) instanceof Reminder) {
                     Log.d("IO", "Read from storage:" + list.toString());
                     reminderList = (List<Reminder>) list;
-                    listAdapter.notifyDataSetChanged();
+                    listAdapter = new ReminderListAdapter(this,
+                                                          R.layout.reminder_list_item,
+                                                          reminderList);
+                    listView.setAdapter(listAdapter);
                 }
             }
             fis.close();
@@ -169,9 +221,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                               new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                                               Constants.RC_LOCATION);
         }
-
-        Intent locationService = new Intent(this, LocationService.class);
-        startService(locationService);
     }
 
     @Override
@@ -250,14 +299,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case Constants.RC_NEW_LOC: {
                 if (resultCode == Activity.RESULT_OK) {
                     Place place = PlacePicker.getPlace(this, data);
-                    reminderList.add(new LocationReminder(Constants.getActivitycounter(),
-                                                          label,
-                                                          place.getId(),
-                                                          place.getName().toString(),
-                                                          place.getAddress().toString(),
-                                                          place.getLatLng().latitude,
-                                                          place.getLatLng().longitude));
-                    writeToStorage();
+                    LocationReminder lr = new LocationReminder(Constants.getActivitycounter(),
+                                                               label,
+                                                               place.getId(),
+                                                               place.getName().toString(),
+                                                               place.getAddress().toString(),
+                                                               place.getLatLng().latitude,
+                                                               place.getLatLng().longitude);
+                    reminderList.add(lr);
+                    changeReminderLabelDialog(lr);
                 }
                 break;
             }
@@ -269,8 +319,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     for (int type : types) {
                         list.add(type);
                     }
-                    reminderList.add(new POIReminder(Constants.getActivitycounter(), label, list));
-                    writeToStorage();
+                    POIReminder pr = new POIReminder(Constants.getActivitycounter(), label, list);
+                    reminderList.add(pr);
+                    changeReminderLabelDialog(pr);
                 }
                 break;
             }
@@ -278,7 +329,38 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         listAdapter.notifyDataSetChanged();
     }
 
-    public static List<Reminder> getReminderList() {
-        return reminderList;
+    public void changeReminderLabelDialog(final Reminder r) {
+        final AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+
+        View view = LayoutInflater.from(context).inflate(R.layout.input_dialog, null);
+        alertDialogBuilder.setView(view);
+
+        final EditText input = (EditText) view.findViewById(R.id.input_label_edittext);
+        if (!r.getLabel().equals("label")) {
+            input.setText(r.getLabel());
+            input.setSelection(input.getText().length());
+        }
+
+
+
+        final Dialog d = alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                r.setLabel(input.getText().toString());
+                writeToStorage();
+            }
+        }).setCancelable(false).show();
+
+        input.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if(actionId == EditorInfo.IME_ACTION_DONE){
+                    r.setLabel(input.getText().toString());
+                    writeToStorage();
+                    d.dismiss();
+                    return true;
+                }
+                return false;
+            }
+        });
     }
 }

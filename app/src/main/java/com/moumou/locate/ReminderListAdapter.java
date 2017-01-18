@@ -1,11 +1,8 @@
 package com.moumou.locate;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.graphics.Typeface;
-import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,9 +13,6 @@ import com.moumou.locate.reminder.LocationReminder;
 import com.moumou.locate.reminder.POIReminder;
 import com.moumou.locate.reminder.Reminder;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.List;
 
 /**

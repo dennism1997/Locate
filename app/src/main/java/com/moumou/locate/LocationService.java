@@ -2,11 +2,16 @@ package com.moumou.locate;
 
 import android.app.IntentService;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.location.Location;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -30,6 +35,7 @@ import com.moumou.locate.reminder.POIReminder;
 import com.moumou.locate.reminder.Reminder;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
@@ -40,7 +46,7 @@ import java.util.List;
  * Created by MouMou on 28-12-16.
  */
 
-public class LocationService extends IntentService implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+public class LocationService extends Service implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
@@ -54,24 +60,31 @@ public class LocationService extends IntentService implements GoogleApiClient.Co
 
     private List<Reminder> reminderList;
 
-    public LocationService() {
-        super("LocationService");
-    }
-
-    @Override
-    protected void onHandleIntent(Intent intent) {
-
-    }
-
     @Override
     public void onCreate() {
         super.onCreate();
-        //TODO remove when release
-        android.os.Debug.waitForDebugger();
+
         setUp();
         mGoogleApiClient.connect();
 
+        Log.d("SERVICE", "Starting Location Service");
+    }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d("SERVICE", "Stopping Location Service");
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        return START_STICKY;
     }
 
     private void setUp() {
@@ -82,6 +95,9 @@ public class LocationService extends IntentService implements GoogleApiClient.Co
             mNotificationBuilder = new NotificationCompat.Builder(this).setSmallIcon(R.drawable.ic_add_white_24dp)
                     .setContentTitle("Locate!")
                     .setContentText("Hello World!");
+            mNotificationBuilder.setVibrate(new long[]{1000, 1000});
+            Uri alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+            mNotificationBuilder.setSound(alarmSound);
         }
         if (mNotificationManager == null) {
             mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -134,8 +150,8 @@ public class LocationService extends IntentService implements GoogleApiClient.Co
     protected void startLocationUpdates() {
         // Create the location request
         mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(10 * 60000);
-        mLocationRequest.setFastestInterval(5 * 60000);
+        mLocationRequest.setInterval(5000);
+        mLocationRequest.setFastestInterval(1000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
         //mLocationRequest.setSmallestDisplacement(10);
 
@@ -153,10 +169,8 @@ public class LocationService extends IntentService implements GoogleApiClient.Co
     public void onLocationChanged(Location location) {
         mCurrentLocation = location;
         writeLocation(location);
-        if(getFromStorage() && getPlaces()){
-            checkLocation();
-        }
-        Log.d("LOCATION", "[" + new Date() + "]" + location.toString());
+        getPlaces();
+        Log.d("LOCATION", "[" + new Date() + "] new location:" + location.toString());
     }
 
     private synchronized boolean getPlaces() {
@@ -173,16 +187,22 @@ public class LocationService extends IntentService implements GoogleApiClient.Co
                         if (placeLikelihood.getLikelihood() > 0.1) {
                             places.add(placeLikelihood.getPlace());
                             Log.i("PLACES",
-                                  String.format("Place '%s' has likelihood: %g",
+                                  String.format("Place '%s' has likelihood: %g with types: %s",
                                                 placeLikelihood.getPlace().getName(),
-                                                placeLikelihood.getLikelihood()));
+                                                placeLikelihood.getLikelihood(), Constants.getPlaceTypesString(placeLikelihood.getPlace())));
                         }
                     }
 
+                    mPlaceList = places;
+                    Log.d("LOCATION", "Finished getting places from Google");
+                    if (getFromStorage()) {
+                        checkLocation();
+                    }
                     likelyPlaces.release();
+
                 }
             });
-            mPlaceList = places;
+
             return true;
         } catch (SecurityException e) {
             e.printStackTrace();
@@ -201,12 +221,15 @@ public class LocationService extends IntentService implements GoogleApiClient.Co
     }
 
     private void checkLocation() {
+        Log.d("LOC", "Checking Location");
         for (Reminder r : reminderList) {
             if (r instanceof POIReminder) {
                 POIReminder pr = (POIReminder) r;
                 for (Place p : mPlaceList) {
-                    for (int i : p.getPlaceTypes()) {
+                    for (int j = 0; j < p.getPlaceTypes().size(); j++) {
+                        int i = p.getPlaceTypes().get(j);
                         if (pr.getPlaceTypes().contains(i)) {
+                            Log.d("LOC", "Matched location with " + p.getPlaceTypes().get(j));
                             pr.setMatchedType(i);
                             makeNotification(pr);
                             break;
@@ -224,6 +247,7 @@ public class LocationService extends IntentService implements GoogleApiClient.Co
                 l2.setLongitude(mCurrentLocation.getLongitude());
 
                 if (l1.distanceTo(l2) < 50) {
+                    Log.d("LOC", "Matched location with " + lr.getPlaceAddress());
                     makeNotification(lr);
                 }
             }
@@ -247,6 +271,13 @@ public class LocationService extends IntentService implements GoogleApiClient.Co
             }
             fis.close();
             ois.close();
+            return false;
+        } catch (FileNotFoundException e) {
+            try {
+                openFileOutput(Constants.REMINDER_FILE, MODE_PRIVATE);
+            } catch (FileNotFoundException e1) {
+                e1.printStackTrace();
+            }
         } catch (ClassNotFoundException | IOException e) {
             Log.d("IO", "Couldn't read from storage");
             e.printStackTrace();
@@ -269,7 +300,13 @@ public class LocationService extends IntentService implements GoogleApiClient.Co
     private void makeNotification(Reminder r) {
         mNotificationBuilder.setContentTitle(r.getLabel());
         mNotificationBuilder.setContentText(r.toNotificationString());
-        mNotificationManager.notify(r.getId(), mNotificationBuilder.build());
-    }
 
+        Intent i = new Intent(getApplicationContext(), MainActivity.class);
+        PendingIntent pi = PendingIntent.getActivity(getApplicationContext(), 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        mNotificationBuilder.setContentIntent(pi);
+        mNotificationManager.notify(r.getId(), mNotificationBuilder.build());
+
+
+    }
 }

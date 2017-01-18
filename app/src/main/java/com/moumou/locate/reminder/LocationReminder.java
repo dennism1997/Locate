@@ -1,8 +1,5 @@
 package com.moumou.locate.reminder;
 
-import com.google.android.gms.location.places.Place;
-import com.google.android.gms.maps.model.LatLng;
-
 import java.io.Serializable;
 
 /**

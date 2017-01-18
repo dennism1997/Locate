@@ -25,4 +25,8 @@ public abstract class Reminder implements Serializable{
     }
 
     public abstract String toNotificationString();
+
+    public void setLabel(String label) {
+        this.label = label;
+    }
 }

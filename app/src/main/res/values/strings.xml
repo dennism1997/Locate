@@ -21,4 +21,7 @@
     <string name="gsign_in_tag">GSign In</string>
     <string name="title_activity_add_loc_rem">Add Location Reminder</string>
     <string name="title_activity_add_loc">Add Location Reminder</string>
+    <string name="action_settings">Settings</string>
+    <string name="enter_title">Enter title:</string>
+    <string name="title">title</string>
 </resources>
