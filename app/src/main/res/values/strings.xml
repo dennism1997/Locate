@@ -24,4 +24,7 @@
     <string name="action_settings">Settings</string>
     <string name="enter_title">Enter title:</string>
     <string name="title">title</string>
+    <string name="permission_needed">We need the following permission(s):</string>
+    <string name="Permission">Permissions Needed</string>
+    <string name="OK">OK</string>
 </resources>

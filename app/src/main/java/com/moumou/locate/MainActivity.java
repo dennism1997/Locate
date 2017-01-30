@@ -9,6 +9,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -36,7 +37,9 @@ import com.google.android.gms.location.places.ui.PlacePicker;
 import com.moumou.locate.reminder.LocationReminder;
 import com.moumou.locate.reminder.POIReminder;
 import com.moumou.locate.reminder.Reminder;
+import com.moumou.locate.reminder.WifiReminder;
 
+import java.io.EOFException;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -58,6 +61,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private FloatingActionButton fab;
     private FloatingActionButton fab1;
     private FloatingActionButton fab2;
+    private FloatingActionButton fab3;
     private boolean isFabOpen = false;
     private Animation fab_open;
     private Animation fab_close;
@@ -117,6 +121,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         fab1.setOnClickListener(this);
         fab2 = (FloatingActionButton) findViewById(R.id.fab2);
         fab2.setOnClickListener(this);
+        fab3 = (FloatingActionButton) findViewById(R.id.fab3);
+        fab3.setOnClickListener(this);
 
         fab_open = AnimationUtils.loadAnimation(this, R.anim.fab_open);
         fab_close = AnimationUtils.loadAnimation(this, R.anim.fab_close);
@@ -164,7 +170,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
             fis.close();
             ois.close();
-        } catch (FileNotFoundException e) {
+        } catch (FileNotFoundException | EOFException e) {
             try {
                 openFileOutput(Constants.REMINDER_FILE, MODE_PRIVATE);
             } catch (FileNotFoundException e1) {
@@ -224,6 +230,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull final String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == Constants.RC_LOCATION) {
+            for (int i = 0; i < grantResults.length; i++) {
+                if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
+                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+                    final int finalI = i;
+                    alertDialogBuilder.setTitle(R.string.Permission)
+                            .setMessage(R.string.permission_needed + permissions[i])
+                            .setPositiveButton(R.string.OK, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                    ActivityCompat.requestPermissions(MainActivity.this,
+                                                                      new String[]{permissions[finalI]},
+                                                                      Constants.RC_LOCATION);
+                                }
+                            })
+                            .show();
+                }
+            }
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
+
+    @Override
     public void onStop() {
         super.onStop();
         closeFAB();
@@ -256,6 +286,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startActivityForResult(i, Constants.RC_NEW_PLACE);
                 animateFAB();
                 break;
+            case R.id.fab3:
+                Intent intent = new Intent(this, AddWifiRemActivity.class);
+                startActivityForResult(intent, Constants.RC_NEW_WIFI);
+                animateFAB();
+                break;
         }
     }
 
@@ -265,16 +300,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             fab.startAnimation(rotate_backward);
             fab1.startAnimation(fab_close);
             fab2.startAnimation(fab_close);
+            fab3.startAnimation(fab_close);
             fab1.setClickable(false);
             fab2.setClickable(false);
+            fab3.setClickable(false);
             isFabOpen = false;
         } else {
 
             fab.startAnimation(rotate_forward);
             fab1.startAnimation(fab_open);
             fab2.startAnimation(fab_open);
+            fab3.startAnimation(fab_open);
             fab1.setClickable(true);
             fab2.setClickable(true);
+            fab3.setClickable(true);
             isFabOpen = true;
         }
     }
@@ -325,8 +364,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 break;
             }
-        }
-        listAdapter.notifyDataSetChanged();
+            case Constants.RC_NEW_WIFI: {
+                if (resultCode == Activity.RESULT_OK) {
+
+                    WifiReminder wr = new WifiReminder(Constants.getActivitycounter(),
+                                                       label,
+                                                       data.getStringExtra(Constants.NEW_WIFI_REM));
+                    changeReminderLabelDialog(wr);
+                }
+            }
+        } listAdapter.notifyDataSetChanged();
     }
 
     public void changeReminderLabelDialog(final Reminder r) {
@@ -341,19 +388,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             input.setSelection(input.getText().length());
         }
 
-
-
-        final Dialog d = alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-                r.setLabel(input.getText().toString());
-                writeToStorage();
-            }
-        }).setCancelable(false).show();
+        final Dialog d = alertDialogBuilder.setPositiveButton("OK",
+                                                              new DialogInterface.OnClickListener() {
+                                                                  public void onClick(DialogInterface dialog, int which) {
+                                                                      r.setLabel(input.getText()
+                                                                                         .toString());
+                                                                      writeToStorage();
+                                                                  }
+                                                              }).setCancelable(false).show();
 
         input.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if(actionId == EditorInfo.IME_ACTION_DONE){
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
                     r.setLabel(input.getText().toString());
                     writeToStorage();
                     d.dismiss();

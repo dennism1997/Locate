@@ -13,7 +13,6 @@ import android.widget.ListView;
 
 public class AddPoiRemActivity extends FragmentActivity {
 
-    private ListView listView;
     private PoiTypeAdapter poiTypeAdapter;
 
     @Override
@@ -21,7 +20,7 @@ public class AddPoiRemActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_poi_rem);
 
-        listView = (ListView) findViewById(R.id.poi_type_listview);
+        ListView listView = (ListView) findViewById(R.id.poi_type_listview);
         poiTypeAdapter = new PoiTypeAdapter(this,
                                             R.layout.poi_types_list_item,
                                             Constants.POI_TYPES_ARRAY);

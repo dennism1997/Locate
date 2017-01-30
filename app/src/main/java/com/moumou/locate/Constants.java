@@ -16,11 +16,13 @@ import java.util.List;
 public class Constants {
 
     public static final String REMINDER_FILE = "reminders";
+    public static final String NEW_WIFI_REM = "newwifi";
     private static int activitycounter = 0;
 
     public static final int RC_LOCATION = 9002;
     public static final int RC_NEW_LOC = 9003;
     public static final int RC_NEW_PLACE = 9004;
+    public static final int RC_NEW_WIFI = 9005;
     public static final int LOC_INTERVAL_LONG = 10 * 60 * 1000;
     public static final int LOC_INTERVAL_SHORT = 5 * 60 * 1000;
 

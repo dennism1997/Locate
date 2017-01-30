@@ -9,7 +9,7 @@
     <uses-permission android:name="android.permission.VIBRATE"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
 
     <application
         android:allowBackup="true"
@@ -17,11 +17,10 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
         <activity
             android:name=".MainActivity"
-            android:screenOrientation="portrait"
             android:label="@string/title_activity_main"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -29,9 +28,11 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <activity
+            android:name=".AddPoiRemActivity"
 
-        <activity android:name=".AddPoiRemActivity"
-                  android:label="@string/title_activity_add_loc"/>
+            android:label="@string/title_activity_add_loc"
+            android:screenOrientation="portrait"/>
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
@@ -40,6 +41,12 @@
         <service
             android:name=".LocationService"
             android:exported="false"/>
+
+        <activity
+            android:name=".AddWifiRemActivity"
+            android:screenOrientation="portrait"
+            >
+        </activity>
     </application>
 
 </manifest>

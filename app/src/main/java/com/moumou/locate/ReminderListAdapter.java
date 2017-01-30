@@ -21,12 +21,9 @@ import java.util.List;
 
 public class ReminderListAdapter extends ArrayAdapter<Reminder> {
 
-    private List<Reminder> reminders;
-
     //todo make this
     public ReminderListAdapter(Context context, int resource, List<Reminder> objects) {
         super(context, resource, objects);
-        this.reminders = objects;
     }
 
     @NonNull

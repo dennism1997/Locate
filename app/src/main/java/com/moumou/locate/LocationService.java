@@ -10,6 +10,8 @@ import android.content.SharedPreferences;
 import android.location.Location;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
@@ -33,6 +35,7 @@ import com.google.android.gms.location.places.Places;
 import com.moumou.locate.reminder.LocationReminder;
 import com.moumou.locate.reminder.POIReminder;
 import com.moumou.locate.reminder.Reminder;
+import com.moumou.locate.reminder.WifiReminder;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -170,7 +173,24 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
         mCurrentLocation = location;
         writeLocation(location);
         getPlaces();
+        checkWifiReminder();
         Log.d("LOCATION", "[" + new Date() + "] new location:" + location.toString());
+    }
+
+    private void checkWifiReminder() {
+        WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+        String SSID = wifiInfo.getSSID();
+        if (reminderList != null) {
+            for (Reminder r : reminderList) {
+                if (r instanceof WifiReminder) {
+                    WifiReminder wr = (WifiReminder) r;
+                    if (SSID.equals(wr.getSSID())) {
+                        makeNotification(wr);
+                    }
+                }
+            }
+        }
     }
 
     private synchronized boolean getPlaces() {
@@ -189,7 +209,8 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
                             Log.i("PLACES",
                                   String.format("Place '%s' has likelihood: %g with types: %s",
                                                 placeLikelihood.getPlace().getName(),
-                                                placeLikelihood.getLikelihood(), Constants.getPlaceTypesString(placeLikelihood.getPlace())));
+                                                placeLikelihood.getLikelihood(),
+                                                Constants.getPlaceTypesString(placeLikelihood.getPlace())));
                         }
                     }
 
@@ -199,7 +220,6 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
                         checkLocation();
                     }
                     likelyPlaces.release();
-
                 }
             });
 
@@ -302,11 +322,12 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
         mNotificationBuilder.setContentText(r.toNotificationString());
 
         Intent i = new Intent(getApplicationContext(), MainActivity.class);
-        PendingIntent pi = PendingIntent.getActivity(getApplicationContext(), 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pi = PendingIntent.getActivity(getApplicationContext(),
+                                                     0,
+                                                     i,
+                                                     PendingIntent.FLAG_UPDATE_CURRENT);
 
         mNotificationBuilder.setContentIntent(pi);
         mNotificationManager.notify(r.getId(), mNotificationBuilder.build());
-
-
     }
 }

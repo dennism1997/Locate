@@ -26,6 +26,18 @@
     <include layout="@layout/content_main"/>
 
 
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="226dp"
+        android:layout_gravity="bottom|end"
+        android:layout_marginRight="@dimen/fab_margin"
+        android:visibility="invisible"
+        app:backgroundTint="@color/colorFab2"
+        app:elevation="6dp"
+        app:pressedTranslationZ="12dp"
+        android:src="@drawable/ic_store_mall_directory_white_24dp" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab2"
@@ -38,7 +50,7 @@
         app:backgroundTint="@color/colorFab2"
         app:elevation="6dp"
         app:pressedTranslationZ="12dp"
-        android:src="@drawable/common_google_signin_btn_icon_light_normal" />
+        android:src="@drawable/ic_store_mall_directory_white_24dp" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab1"
@@ -51,7 +63,7 @@
         app:elevation="6dp"
         app:backgroundTint="@color/colorFab1"
         app:pressedTranslationZ="12dp"
-        android:src="@drawable/common_google_signin_btn_icon_light_normal" />
+        android:src="@drawable/ic_location_on_white_24dp" />
 
     <android.support.design.widget.FloatingActionButton
         android:layout_width="wrap_content"
