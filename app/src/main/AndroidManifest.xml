@@ -47,6 +47,11 @@
             android:screenOrientation="portrait"
             >
         </activity>
+
+        <activity
+            android:name=".IntroActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Intro"/>/>
     </application>
 
 </manifest>

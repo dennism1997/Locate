@@ -6,4 +6,6 @@
     <color name="colorFab1">#d50000</color>
     <color name="colorFab2">#e040fb</color>
     <color name="colorFab3">#1976d2</color>
+    <color name="introBackground1">#e0e0e0</color>
+    <color name="introBackground1dark">#757575</color>
 </resources>

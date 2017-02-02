@@ -5,8 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 
 public class AddWifiRemActivity extends AppCompatActivity {
 
@@ -39,8 +38,9 @@ public class AddWifiRemActivity extends AppCompatActivity {
 
         if (list == null) {
             Intent result = new Intent();
-            setResult(Activity.RESULT_CANCELED, result);
+            setResult(Constants.NO_WIFI, result);
             finish();
+            return;
         }
 
         Collections.sort(list, new Comparator<WifiConfiguration>() {

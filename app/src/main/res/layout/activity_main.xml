@@ -9,10 +9,10 @@
     tools:context="com.moumou.locate.MainActivity">
 
     <android.support.design.widget.AppBarLayout
+        android:id="@+id/appBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.AppBarOverlay"
-        android:id="@+id/appBar">
+        android:theme="@style/AppTheme.AppBarOverlay">
 
         <android.support.v7.widget.Toolbar
             android:id="@+id/toolbar"
@@ -30,50 +30,50 @@
         android:id="@+id/fab3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="226dp"
         android:layout_gravity="bottom|end"
+        android:layout_marginBottom="226dp"
         android:layout_marginRight="@dimen/fab_margin"
+        android:src="@drawable/ic_wifi_white_24dp"
         android:visibility="invisible"
-        app:backgroundTint="@color/colorFab2"
+        app:backgroundTint="@color/colorFab3"
         app:elevation="6dp"
-        app:pressedTranslationZ="12dp"
-        android:src="@drawable/ic_store_mall_directory_white_24dp" />
+        app:pressedTranslationZ="12dp"/>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="156dp"
         android:layout_gravity="bottom|end"
+        android:layout_marginBottom="156dp"
         android:layout_marginRight="@dimen/fab_margin"
+        android:src="@drawable/ic_store_mall_directory_white_24dp"
         android:visibility="invisible"
         app:backgroundTint="@color/colorFab2"
         app:elevation="6dp"
-        app:pressedTranslationZ="12dp"
-        android:src="@drawable/ic_store_mall_directory_white_24dp" />
+        app:pressedTranslationZ="12dp"/>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="86dp"
         android:layout_gravity="bottom|end"
+        android:layout_marginBottom="86dp"
         android:layout_marginRight="@dimen/fab_margin"
+        android:src="@drawable/ic_location_on_white_24dp"
         android:visibility="invisible"
-        app:elevation="6dp"
         app:backgroundTint="@color/colorFab1"
-        app:pressedTranslationZ="12dp"
-        android:src="@drawable/ic_location_on_white_24dp" />
+        app:elevation="6dp"
+        app:pressedTranslationZ="12dp"/>
 
     <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/ic_add_white_24dp"
-        android:id="@+id/fab"
-        app:fabSize="normal"
-        android:layout_marginBottom="@dimen/fab_margin"
         android:layout_gravity="bottom|end"
+        android:layout_marginBottom="@dimen/fab_margin"
         android:layout_marginRight="@dimen/fab_margin"
-        app:borderWidth="0dp" />
+        android:src="@drawable/ic_add_white_24dp"
+        app:borderWidth="0dp"
+        app:fabSize="normal"/>
 
 </android.support.design.widget.CoordinatorLayout>

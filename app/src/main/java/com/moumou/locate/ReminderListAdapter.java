@@ -54,4 +54,9 @@ public class ReminderListAdapter extends ArrayAdapter<Reminder> {
         }
         return convertView;
     }
+
+    @Override
+    public boolean isEmpty() {
+        return super.isEmpty();
+    }
 }

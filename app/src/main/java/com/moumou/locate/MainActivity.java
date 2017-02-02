@@ -1,6 +1,5 @@
 package com.moumou.locate;
 
-import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -9,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
@@ -70,12 +70,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private Toolbar toolbar;
 
-    final Context context = this;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        boolean firstStart = PreferenceManager.getDefaultSharedPreferences(this)
+                .getBoolean(Constants.PREF_KEY_FIRST_START, true);
+
+        if (firstStart || ActivityCompat.checkSelfPermission(this,
+                                                             android.Manifest.permission.ACCESS_FINE_LOCATION) !=
+                          PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.ACCESS_COARSE_LOCATION) !=
+                                                               PackageManager.PERMISSION_GRANTED) {
+
+            Intent i = new Intent(this, IntroActivity.class);
+            startActivityForResult(i, Constants.RC_INTRO);
+        } else {
+            Intent locationService = new Intent(this, LocationService.class);
+            startService(locationService);
+        }
 
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swiperefresh);
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -92,6 +107,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         reminderList = new ArrayList<>();
         listView = (ListView) findViewById(R.id.reminder_listview);
+
+        //View listEmptyView = getLayoutInflater().inflate(R.layout.reminder_list_empty, null);
+        //        TextView emptyView = new TextView(this);
+        //        emptyView.setText(R.string.empty_reminder_list_text);
+        //        ((ViewGroup)listView.getParent()).addView(emptyView);
+        listView.setEmptyView(findViewById(R.id.empty_list_textview));
+
         //todo make resource
         listAdapter = new ReminderListAdapter(this, R.layout.reminder_list_item, reminderList);
         listView.setAdapter(listAdapter);
@@ -128,9 +150,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         fab_close = AnimationUtils.loadAnimation(this, R.anim.fab_close);
         rotate_forward = AnimationUtils.loadAnimation(this, R.anim.rotate_forward);
         rotate_backward = AnimationUtils.loadAnimation(this, R.anim.rotate_backward);
-
-        Intent locationService = new Intent(this, LocationService.class);
-        startService(locationService);
     }
 
     @Override
@@ -166,6 +185,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                           R.layout.reminder_list_item,
                                                           reminderList);
                     listView.setAdapter(listAdapter);
+                    Log.d("ADAPTER", listAdapter.getCount() + "");
+                } else if (list.isEmpty()) {
+                    listAdapter = new ReminderListAdapter(this,
+                                                          R.layout.reminder_list_item,
+                                                          new ArrayList<Reminder>());
+                    listView.setAdapter(listAdapter);
+                    Log.d("ADAPTER", listAdapter.getCount() + "");
                 }
             }
             fis.close();
@@ -214,19 +240,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onStart();
 
         getFromStorage();
-
-        if (ActivityCompat.checkSelfPermission(this,
-                                               android.Manifest.permission.ACCESS_FINE_LOCATION) !=
-            PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this,
-                                                                                    android.Manifest.permission.ACCESS_COARSE_LOCATION) !=
-                                                 PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                                              new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION},
-                                              Constants.RC_LOCATION);
-            ActivityCompat.requestPermissions(this,
-                                              new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                                              Constants.RC_LOCATION);
-        }
     }
 
     @Override
@@ -371,15 +384,47 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                        label,
                                                        data.getStringExtra(Constants.NEW_WIFI_REM));
                     changeReminderLabelDialog(wr);
+                } else if (resultCode == Constants.NO_WIFI) {
+                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+                    alertDialogBuilder.setTitle("Can't get list of wifi spots")
+                            .setMessage(
+                                    "We couldn't get access to your wifi configurations. Is wifi enabled?")
+                            .setPositiveButton(R.string.OK, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            })
+                            .show();
                 }
+                break;
             }
-        } listAdapter.notifyDataSetChanged();
+            case Constants.RC_INTRO: {
+                if (resultCode == RESULT_OK) {
+                    //TODO uncomment
+                    PreferenceManager.getDefaultSharedPreferences(this)
+                            .edit()
+                            .putBoolean(Constants.PREF_KEY_FIRST_START, false)
+                            .apply();
+                    Intent locationService = new Intent(this, LocationService.class);
+                    startService(locationService);
+                } else {
+                    PreferenceManager.getDefaultSharedPreferences(this)
+                            .edit()
+                            .putBoolean(Constants.PREF_KEY_FIRST_START, true)
+                            .apply();
+                    //User cancelled the intro so we'll finish this activity too.
+                    finish();
+                }
+                break;
+            }
+        }
+        listAdapter.notifyDataSetChanged();
     }
 
     public void changeReminderLabelDialog(final Reminder r) {
-        final AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+        final AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
 
-        View view = LayoutInflater.from(context).inflate(R.layout.input_dialog, null);
+        View view = LayoutInflater.from(MainActivity.this).inflate(R.layout.input_dialog, null);
         alertDialogBuilder.setView(view);
 
         final EditText input = (EditText) view.findViewById(R.id.input_label_edittext);

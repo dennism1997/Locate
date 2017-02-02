@@ -27,4 +27,5 @@
     <string name="permission_needed">We need the following permission(s):</string>
     <string name="Permission">Permissions Needed</string>
     <string name="OK">OK</string>
+    <string name="empty_reminder_list_text">It seems you don\'t have any reminders!\nAdd one by pressing the plus-button</string>
 </resources>
