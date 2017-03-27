@@ -24,9 +24,20 @@ public abstract class Reminder implements Serializable{
         return label;
     }
 
-    public abstract String toNotificationString();
-
     public void setLabel(String label) {
         this.label = label;
     }
+
+    public abstract String toNotificationString();
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Reminder reminder = (Reminder) o;
+
+        return id == reminder.id && label.equals(reminder.label);
+    }
+
 }

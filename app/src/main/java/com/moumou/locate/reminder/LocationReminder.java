@@ -46,4 +46,20 @@ public class LocationReminder extends Reminder implements Serializable {
     public String toNotificationString(){
         return placeName + ", " + placeAddress;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        LocationReminder that = (LocationReminder) o;
+
+        if (Double.compare(that.latitude, latitude) != 0) return false;
+        if (Double.compare(that.longitude, longitude) != 0) return false;
+        if (!placeId.equals(that.placeId)) return false;
+        if (!placeName.equals(that.placeName)) return false;
+        return placeAddress.equals(that.placeAddress);
+    }
+
 }

@@ -50,4 +50,17 @@ public class POIReminder extends Reminder implements Serializable {
     public void setMatchedType(int i) {
         this.matchedType = i;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        POIReminder that = (POIReminder) o;
+
+        if (matchedType != that.matchedType) return false;
+        return placeTypes.equals(that.placeTypes);
+    }
+
 }

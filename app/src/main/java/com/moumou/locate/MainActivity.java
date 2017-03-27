@@ -150,6 +150,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         fab_close = AnimationUtils.loadAnimation(this, R.anim.fab_close);
         rotate_forward = AnimationUtils.loadAnimation(this, R.anim.rotate_forward);
         rotate_backward = AnimationUtils.loadAnimation(this, R.anim.rotate_backward);
+
+        getFromStorage();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getFromStorage();
     }
 
     @Override
@@ -235,12 +243,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-
-        getFromStorage();
-    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull final String[] permissions, @NonNull int[] grantResults) {
@@ -351,7 +353,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case Constants.RC_NEW_LOC: {
                 if (resultCode == Activity.RESULT_OK) {
                     Place place = PlacePicker.getPlace(this, data);
-                    LocationReminder lr = new LocationReminder(Constants.getActivitycounter(),
+                    LocationReminder lr = new LocationReminder(Constants.getReminderId(reminderList),
                                                                label,
                                                                place.getId(),
                                                                place.getName().toString(),
@@ -371,8 +373,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     for (int type : types) {
                         list.add(type);
                     }
-                    POIReminder pr = new POIReminder(Constants.getActivitycounter(), label, list);
+                    POIReminder pr = new POIReminder(Constants.getReminderId(), label, list);
                     reminderList.add(pr);
+                    writeToStorage();
                     changeReminderLabelDialog(pr);
                 }
                 break;
@@ -380,7 +383,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case Constants.RC_NEW_WIFI: {
                 if (resultCode == Activity.RESULT_OK) {
 
-                    WifiReminder wr = new WifiReminder(Constants.getActivitycounter(),
+                    WifiReminder wr = new WifiReminder(Constants.getReminderId(reminderList),
                                                        label,
                                                        data.getStringExtra(Constants.NEW_WIFI_REM));
                     changeReminderLabelDialog(wr);
@@ -436,7 +439,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                               new DialogInterface.OnClickListener() {
                                                                   public void onClick(DialogInterface dialog, int which) {
                                                                       r.setLabel(input.getText()
-                                                                                         .toString());
+                                                                                         .toString()
+                                                                                         .trim());
                                                                       writeToStorage();
                                                                   }
                                                               }).setCancelable(false).show();
