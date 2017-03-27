@@ -112,7 +112,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //        TextView emptyView = new TextView(this);
         //        emptyView.setText(R.string.empty_reminder_list_text);
         //        ((ViewGroup)listView.getParent()).addView(emptyView);
-        listView.setEmptyView(findViewById(R.id.empty_list_textview));
+        //listView.setEmptyView(findViewById(R.id.empty_list_textview));
 
         //todo make resource
         listAdapter = new ReminderListAdapter(this, R.layout.reminder_list_item, reminderList);
@@ -400,7 +400,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
             case Constants.RC_INTRO: {
                 if (resultCode == RESULT_OK) {
-                    //TODO uncomment
                     PreferenceManager.getDefaultSharedPreferences(this)
                             .edit()
                             .putBoolean(Constants.PREF_KEY_FIRST_START, false)

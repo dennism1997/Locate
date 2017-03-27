@@ -43,7 +43,7 @@ public class ReminderListAdapter extends ArrayAdapter<Reminder> {
         title.setTypeface(roboto);
         description.setTypeface(roboto);
 
-        title.setText(r.getLabel());
+        title.setText(r != null ? r.getLabel().replace('_', ' ') : "NaN");
 
         if (r instanceof POIReminder) {
             POIReminder pr = (POIReminder) r;

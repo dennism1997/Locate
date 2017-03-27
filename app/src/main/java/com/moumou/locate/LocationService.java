@@ -1,6 +1,5 @@
 package com.moumou.locate;
 
-import android.app.IntentService;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -51,14 +50,12 @@ import java.util.List;
 
 public class LocationService extends Service implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
+    NotificationManager mNotificationManager;
+    long minute = 60000;
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
-
     private Location mCurrentLocation;
-
     private NotificationCompat.Builder mNotificationBuilder;
-    NotificationManager mNotificationManager;
-
     private List<Place> mPlaceList;
 
     private List<Reminder> reminderList;
@@ -151,12 +148,10 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
 
     // Trigger new location updates at interval
     protected void startLocationUpdates() {
-        // Create the location request
-        mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(5000);
-        mLocationRequest.setFastestInterval(1000);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-        //mLocationRequest.setSmallestDisplacement(10);
+        mLocationRequest = new LocationRequest().setInterval(4 * minute)
+                .setFastestInterval(10 * minute)
+                .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
+                .setSmallestDisplacement(50);
 
         // Request location updates
         try {
