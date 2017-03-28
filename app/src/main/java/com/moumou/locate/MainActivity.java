@@ -121,7 +121,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                changeReminderLabelDialog((Reminder) listView.getItemAtPosition(position));
+                changeReminderLabelDialog((Reminder) listView.getItemAtPosition(position),
+                                          reminderList);
             }
         });
 
@@ -131,7 +132,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 reminderList.remove(position);
                 listAdapter.notifyDataSetChanged();
-                writeToStorage();
+                writeToStorage(reminderList);
 
                 return true;
             }
@@ -228,14 +229,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private synchronized void writeToStorage() {
+    private synchronized void writeToStorage(List<Reminder> list) {
         try {
             FileOutputStream fos = openFileOutput(Constants.REMINDER_FILE, Context.MODE_PRIVATE);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(reminderList);
+            oos.writeObject(list);
             fos.close();
             oos.close();
-            Log.d("IO", "Wrote to storage:" + reminderList.toString());
+            Log.d("IO", "Wrote to storage:" + list.toString());
             getFromStorage();
         } catch (IOException e) {
             Log.d("IO", "Couldn't write to storage");
@@ -361,7 +362,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                                place.getLatLng().latitude,
                                                                place.getLatLng().longitude);
                     reminderList.add(lr);
-                    changeReminderLabelDialog(lr);
+                    changeReminderLabelDialog(lr, reminderList);
                 }
                 break;
             }
@@ -375,8 +376,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                     POIReminder pr = new POIReminder(Constants.getReminderId(), label, list);
                     reminderList.add(pr);
-                    writeToStorage();
-                    changeReminderLabelDialog(pr);
+                    changeReminderLabelDialog(pr, reminderList);
                 }
                 break;
             }
@@ -386,7 +386,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     WifiReminder wr = new WifiReminder(Constants.getReminderId(reminderList),
                                                        label,
                                                        data.getStringExtra(Constants.NEW_WIFI_REM));
-                    changeReminderLabelDialog(wr);
+                    reminderList.add(wr);
+                    changeReminderLabelDialog(wr, reminderList);
                 } else if (resultCode == Constants.NO_WIFI) {
                     AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
                     alertDialogBuilder.setTitle("Can't get list of wifi spots")
@@ -423,7 +424,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         listAdapter.notifyDataSetChanged();
     }
 
-    public void changeReminderLabelDialog(final Reminder r) {
+    public void changeReminderLabelDialog(final Reminder r, final List<Reminder> list) {
         final AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
 
         View view = LayoutInflater.from(MainActivity.this).inflate(R.layout.input_dialog, null);
@@ -441,7 +442,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                                       r.setLabel(input.getText()
                                                                                          .toString()
                                                                                          .trim());
-                                                                      writeToStorage();
+                                                                      writeToStorage(list);
                                                                   }
                                                               }).setCancelable(false).show();
 
@@ -450,7 +451,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
                     r.setLabel(input.getText().toString());
-                    writeToStorage();
+                    writeToStorage(list);
                     d.dismiss();
                     return true;
                 }
