@@ -56,6 +56,7 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
     private LocationRequest mLocationRequest;
     private Location mCurrentLocation;
     private NotificationCompat.Builder mNotificationBuilder;
+    private NotificationCompat.Action.Builder mActionBuilder;
     private List<Place> mPlaceList;
 
     private List<Reminder> reminderList;
@@ -92,7 +93,7 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
             buildGoogleApiClient();
         }
         if (mNotificationBuilder == null) {
-            mNotificationBuilder = new NotificationCompat.Builder(this).setSmallIcon(R.drawable.ic_add_white_24dp)
+            mNotificationBuilder = new NotificationCompat.Builder(this).setSmallIcon(R.drawable.ic_stat_location_on)
                     .setContentTitle("Locate!")
                     .setContentText("Hello World!");
             mNotificationBuilder.setVibrate(new long[]{1000, 1000});
@@ -149,10 +150,11 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
     // Trigger new location updates at interval
     protected void startLocationUpdates() {
         mLocationRequest = new LocationRequest().setInterval(4 * minute)
+                //.setInterval(100)
+                //.setFastestInterval(100)
                 .setFastestInterval(10 * minute)
-                .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
-                .setSmallestDisplacement(50);
-
+                .setSmallestDisplacement(50)
+                .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
         // Request location updates
         try {
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
@@ -323,6 +325,21 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
                                                      PendingIntent.FLAG_UPDATE_CURRENT);
 
         mNotificationBuilder.setContentIntent(pi);
+
+        PendingIntent reminderLaterAction = DelayNotificationActivity.getDismissIntent(r.getId(),
+                                                                                       getApplicationContext());
+        PendingIntent dismissAction = DismissNotificationActivity.getDismissIntent(r.getId(),
+                                                                                   getApplicationContext());
+        mNotificationBuilder.addAction(R.drawable.ic_alarm_black_24dp,
+                                       getString(R.string.remind_later),
+                                       reminderLaterAction);
+        mNotificationBuilder.addAction(R.drawable.ic_cancel_black_24dp,
+                                       getString(R.string.dismiss),
+                                       dismissAction);
+
+        //mActionBuilder = new NotificationCompat.Action.Builder(R.drawable.ic_alarm_black_24dp, getString(R.string.remind_later), );
+
+        //NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
         mNotificationManager.notify(r.getId(), mNotificationBuilder.build());
     }
 }

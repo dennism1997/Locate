@@ -9,8 +9,6 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import com.moumou.locate.reminder.LocationReminder;
-import com.moumou.locate.reminder.POIReminder;
 import com.moumou.locate.reminder.Reminder;
 
 import java.util.List;
@@ -43,15 +41,9 @@ public class ReminderListAdapter extends ArrayAdapter<Reminder> {
         title.setTypeface(roboto);
         description.setTypeface(roboto);
 
-        title.setText(r != null ? r.getLabel().replace('_', ' ') : "NaN");
+        title.setText(r != null ? r.getLabel().replace('_', ' ') : "Null Reminder");
 
-        if (r instanceof POIReminder) {
-            POIReminder pr = (POIReminder) r;
-            description.setText(pr.getPlaceTypesString());
-        } else if (r instanceof LocationReminder) {
-            LocationReminder lr = (LocationReminder) r;
-            description.setText(lr.getPlaceName() + ", " + lr.getPlaceAddress());
-        }
+        description.setText(r != null ? r.toDescriptionString() : "Null Reminder");
         return convertView;
     }
 

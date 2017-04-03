@@ -30,6 +30,8 @@ public abstract class Reminder implements Serializable{
 
     public abstract String toNotificationString();
 
+    public abstract String toDescriptionString();
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

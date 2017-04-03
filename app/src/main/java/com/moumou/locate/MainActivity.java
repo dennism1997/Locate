@@ -51,7 +51,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private List<Reminder> reminderList;
+    private static List<Reminder> reminderList;
     private ListView listView;
     private ReminderListAdapter listAdapter;
 
@@ -69,6 +69,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Animation rotate_backward;
 
     private Toolbar toolbar;
+
+    public static synchronized void removeReminder(int id) {
+        for (Reminder r : reminderList) {
+            if (r.getId() == id) {
+                Log.d("REMOVE", "Removed reminder " + r.toString());
+                reminderList.remove(r);
+                return;
+            }
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -431,6 +441,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         alertDialogBuilder.setView(view);
 
         final EditText input = (EditText) view.findViewById(R.id.input_label_edittext);
+        //todo make sure input gets focused and keyboard pops up
         if (!r.getLabel().equals("label")) {
             input.setText(r.getLabel());
             input.setSelection(input.getText().length());

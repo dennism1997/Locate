@@ -6,7 +6,7 @@ import java.io.Serializable;
  * Created by MouMou on 19-01-17.
  */
 
-public class WifiReminder extends Reminder implements Serializable{
+public class WifiReminder extends Reminder implements Serializable {
 
     private String SSID;
 
@@ -18,6 +18,11 @@ public class WifiReminder extends Reminder implements Serializable{
     @Override
     public String toNotificationString() {
         return "Network: " + this.SSID;
+    }
+
+    @Override
+    public String toDescriptionString() {
+        return toNotificationString();
     }
 
     public String getSSID() {

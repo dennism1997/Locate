@@ -34,23 +34,23 @@ public class AddWifiRemActivity extends AppCompatActivity {
         ssidList = new ArrayList<>();
         WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 
-        List<WifiConfiguration> list = wifiManager.getConfiguredNetworks();
+        List<WifiConfiguration> wifiList = wifiManager.getConfiguredNetworks();
 
-        if (list == null) {
+        if (wifiList == null) {
             Intent result = new Intent();
             setResult(Constants.NO_WIFI, result);
             finish();
             return;
         }
 
-        Collections.sort(list, new Comparator<WifiConfiguration>() {
+        Collections.sort(wifiList, new Comparator<WifiConfiguration>() {
             @Override
             public int compare(WifiConfiguration o1, WifiConfiguration o2) {
                 return o2.priority - o1.priority;
             }
         });
 
-        for (WifiConfiguration wifiConfiguration : list) {
+        for (WifiConfiguration wifiConfiguration : wifiList) {
             ssidList.add(wifiConfiguration.SSID.substring(1, wifiConfiguration.SSID.length() - 1));
         }
 

@@ -44,7 +44,12 @@ public class POIReminder extends Reminder implements Serializable {
             }
         }
 
-        return sb.toString();
+        return sb.toString().replace('_', ' ');
+    }
+
+    @Override
+    public String toDescriptionString() {
+        return getPlaceTypesString();
     }
 
     public void setMatchedType(int i) {

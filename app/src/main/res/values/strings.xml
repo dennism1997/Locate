@@ -15,4 +15,6 @@
     <string name="Permission">Permissions Needed</string>
     <string name="OK">OK</string>
     <string name="empty_reminder_list_text">It seems you don\'t have any reminders!\nAdd one by pressing the plus-button</string>
+    <string name="remind_later">Remind Later</string>
+    <string name="dismiss">Dismiss</string>
 </resources>

@@ -30,7 +30,6 @@
         </activity>
         <activity
             android:name=".AddPoiRemActivity"
-
             android:label="@string/title_activity_add_loc"
             android:screenOrientation="portrait"/>
 
@@ -44,14 +43,23 @@
 
         <activity
             android:name=".AddWifiRemActivity"
-            android:screenOrientation="portrait"
-            >
+            android:screenOrientation="portrait">
         </activity>
-
+        <activity
+            android:name=".DelayNotificationActivity"
+            android:excludeFromRecents="true"
+            android:taskAffinity="">
+        </activity>
         <activity
             android:name=".IntroActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.Intro"/>/>
+            android:theme="@style/Theme.Intro"/>
+        />
+        <activity
+            android:name=".DismissNotificationActivity"
+            android:excludeFromRecents="true"
+            android:taskAffinity="">
+        </activity>
     </application>
 
 </manifest>
