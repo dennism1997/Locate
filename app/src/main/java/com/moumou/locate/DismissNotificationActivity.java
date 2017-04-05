@@ -22,7 +22,7 @@ public class DismissNotificationActivity extends AppCompatActivity {
         NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         int id = getIntent().getIntExtra(Constants.NOTIFICATION_ID, -1);
         manager.cancel(id);
-        MainActivity.removeReminder(id);
+        //MainActivity.removeReminder(id);
         finish(); // since finish() is called in onCreate(), onDestroy() will be called immediately
     }
 }

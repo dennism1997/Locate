@@ -10,10 +10,12 @@ public abstract class Reminder implements Serializable{
 
     private int id;
     private String label;
+    private String imageUrl;
 
     public Reminder(int id, String label) {
         this.id = id;
         this.label = label;
+        imageUrl = null;
     }
 
     public int getId() {
@@ -31,6 +33,14 @@ public abstract class Reminder implements Serializable{
     public abstract String toNotificationString();
 
     public abstract String toDescriptionString();
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
 
     @Override
     public boolean equals(Object o) {

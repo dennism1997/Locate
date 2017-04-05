@@ -10,11 +10,13 @@
     <string name="title_activity_add_loc">Add Location Reminder</string>
     <string name="action_settings">Settings</string>
     <string name="enter_title">Enter title:</string>
-    <string name="title">title</string>
+    <string name="title">Title</string>
     <string name="permission_needed">We need the following permission(s):</string>
     <string name="Permission">Permissions Needed</string>
     <string name="OK">OK</string>
     <string name="empty_reminder_list_text">It seems you don\'t have any reminders!\nAdd one by pressing the plus-button</string>
     <string name="remind_later">Remind Later</string>
     <string name="dismiss">Dismiss</string>
+    <string name="reminder_distance_default">1.6 km</string>
+    <string name="description">Description</string>
 </resources>
