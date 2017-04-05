@@ -14,6 +14,8 @@ import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import com.moumou.locate.Adapters.WifiListAdapter;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;

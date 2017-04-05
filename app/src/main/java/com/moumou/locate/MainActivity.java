@@ -7,9 +7,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -30,10 +33,18 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.PlacePhotoMetadata;
+import com.google.android.gms.location.places.PlacePhotoMetadataBuffer;
+import com.google.android.gms.location.places.PlacePhotoMetadataResult;
+import com.google.android.gms.location.places.Places;
 import com.google.android.gms.location.places.ui.PlacePicker;
+import com.moumou.locate.Adapters.ReminderListAdapter;
 import com.moumou.locate.reminder.LocationReminder;
 import com.moumou.locate.reminder.POIReminder;
 import com.moumou.locate.reminder.Reminder;
@@ -49,7 +60,7 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private static List<Reminder> reminderList;
     private ListView listView;
@@ -69,6 +80,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Animation rotate_backward;
 
     private Toolbar toolbar;
+    private GoogleApiClient mGoogleApiClient;
 
     public static synchronized void removeReminder(int id) {
         for (Reminder r : reminderList) {
@@ -148,6 +160,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
+        if (mGoogleApiClient == null) {
+            buildGoogleApiClient();
+        }
+
         fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(this);
         fab1 = (FloatingActionButton) findViewById(R.id.fab1);
@@ -168,6 +184,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onResume() {
         super.onResume();
+        if (mGoogleApiClient == null) {
+            buildGoogleApiClient();
+        }
         getFromStorage();
     }
 
@@ -188,6 +207,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    /*
+     * Create a new location client, using the enclosing class to
+     * handle callbacks.
+     */
+    protected synchronized void buildGoogleApiClient() {
+        this.mGoogleApiClient = new GoogleApiClient.Builder(this).addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .addApi(Places.PLACE_DETECTION_API)
+                .build();
+    }
+
     private synchronized void getFromStorage() {
         FileInputStream fis = null;
         ObjectInputStream ois = null;
@@ -204,6 +235,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                           R.layout.reminder_list_item,
                                                           reminderList);
                     listView.setAdapter(listAdapter);
+                    //getPlacePhotos();
                     Log.d("ADAPTER", listAdapter.getCount() + "");
                 } else if (list.isEmpty()) {
                     listAdapter = new ReminderListAdapter(this,
@@ -254,29 +286,42 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+
+    }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull final String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == Constants.RC_LOCATION) {
-            for (int i = 0; i < grantResults.length; i++) {
-                if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
-                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
-                    final int finalI = i;
-                    alertDialogBuilder.setTitle(R.string.Permission)
-                            .setMessage(R.string.permission_needed + permissions[i])
-                            .setPositiveButton(R.string.OK, new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                    ActivityCompat.requestPermissions(MainActivity.this,
-                                                                      new String[]{permissions[finalI]},
-                                                                      Constants.RC_LOCATION);
-                                }
-                            })
-                            .show();
-                }
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        System.err.println(connectionResult.getErrorMessage());
+    }
+
+    private synchronized void getPlacePhotos() {
+        for (int i = 0; i < reminderList.size(); i++) {
+            if (reminderList.get(i) instanceof LocationReminder) {
+                LocationReminder lr = (LocationReminder) reminderList.get(i);
+                final int position = i;
+                new PhotoTask(listAdapter.getWidth(position), listAdapter.getHeight(position)) {
+                    @Override
+                    protected void onPreExecute() {
+                        // Display a temporary image to show while bitmap is loading.
+                    }
+
+                    @Override
+                    protected void onPostExecute(AttributedPhoto attributedPhoto) {
+                        if (attributedPhoto != null) {
+                            // Photo has been loaded, display it.
+                            listAdapter.setBitmap(position, attributedPhoto.bitmap);
+                        }
+                    }
+                }.execute(lr.getPlaceId());
             }
         }
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     @Override
@@ -469,5 +514,66 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 return false;
             }
         });
+    }
+
+    abstract class PhotoTask extends AsyncTask<String, Void, PhotoTask.AttributedPhoto> {
+
+        private int mHeight;
+
+        private int mWidth;
+
+        public PhotoTask(int width, int height) {
+            mHeight = height;
+            mWidth = width;
+        }
+
+        /**
+         * Loads the first photo for a place id from the Geo Data API.
+         * The place id must be the first (and only) parameter.
+         */
+        @Override
+        protected AttributedPhoto doInBackground(String... params) {
+            if (params.length != 1) {
+                return null;
+            }
+            final String placeId = params[0];
+            AttributedPhoto attributedPhoto = null;
+
+            PlacePhotoMetadataResult result = Places.GeoDataApi.getPlacePhotos(mGoogleApiClient,
+                                                                               placeId).await();
+
+            if (result.getStatus().isSuccess()) {
+                PlacePhotoMetadataBuffer photoMetadataBuffer = result.getPhotoMetadata();
+                if (photoMetadataBuffer.getCount() > 0 && !isCancelled()) {
+                    // Get the first bitmap and its attributions.
+                    PlacePhotoMetadata photo = photoMetadataBuffer.get(0);
+                    CharSequence attribution = photo.getAttributions();
+                    // Load a scaled bitmap for this photo.
+                    Bitmap image = photo.getScaledPhoto(mGoogleApiClient, mWidth, mHeight)
+                            .await()
+                            .getBitmap();
+
+                    attributedPhoto = new AttributedPhoto(attribution, image);
+                }
+                // Release the PlacePhotoMetadataBuffer.
+                photoMetadataBuffer.release();
+            }
+            return attributedPhoto;
+        }
+
+        /**
+         * Holder for an image and its attribution.
+         */
+        class AttributedPhoto {
+
+            public final CharSequence attribution;
+
+            public final Bitmap bitmap;
+
+            public AttributedPhoto(CharSequence attribution, Bitmap bitmap) {
+                this.attribution = attribution;
+                this.bitmap = bitmap;
+            }
+        }
     }
 }

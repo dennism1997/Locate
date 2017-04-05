@@ -1,4 +1,4 @@
-package com.moumou.locate;
+package com.moumou.locate.Adapters;
 
 import android.content.Context;
 import android.graphics.Typeface;
@@ -10,6 +10,8 @@ import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
+import com.moumou.locate.R;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,12 +21,12 @@ import java.util.List;
 
 public class PoiTypeAdapter extends ArrayAdapter<String> {
 
+    private boolean[] checked;
+
     public PoiTypeAdapter(Context context, int resource, String[] objects) {
         super(context, resource, objects);
         checked = new boolean[objects.length];
     }
-
-    private boolean[] checked;
 
     @NonNull
     @Override
@@ -50,18 +52,14 @@ public class PoiTypeAdapter extends ArrayAdapter<String> {
             @Override
             public void onClick(View view) {
                 checkBox.setChecked(!checkBox.isChecked());
-                if (checkBox.isChecked()) {
-                    checked[position] = true;
-                } else {
-                    checked[position] = false;
-                }
+                checked[position] = checkBox.isChecked();
             }
         });
 
         return convertView;
     }
 
-    List<Integer> getCheckedItems() {
+    public List<Integer> getCheckedItems() {
         List<Integer> result = new ArrayList<>();
 
         for (int i = 0; i < checked.length; i++) {

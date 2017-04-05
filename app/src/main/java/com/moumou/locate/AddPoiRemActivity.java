@@ -11,6 +11,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import com.moumou.locate.Adapters.PoiTypeAdapter;
+
 public class AddPoiRemActivity extends FragmentActivity {
 
     private PoiTypeAdapter poiTypeAdapter;
